@@ -7,7 +7,7 @@ intents.message_content = True
 intents.reactions = True
 intents.members = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='-', intents=intents)
 
 # Список пунктов и их состояние
 items = [
@@ -25,7 +25,7 @@ async def on_ready():
     print(f'Logged in as {bot.user}')
 
 
-@bot.command(name='items')
+@bot.command(name='tracker')
 async def items_command(ctx):
     for item in items:
         message = await ctx.send(f"{item['name']} свободен\n\n")
