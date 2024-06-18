@@ -1,8 +1,10 @@
-import disnake #https://ru.guide.disnake.dev/interactions/slash-commands
+import disnake  # https://ru.guide.disnake.dev/interactions/slash-commands
 from disnake.ext import commands, tasks
 import datetime
 import asyncio
 import random
+import requests
+import os
 
 intents = disnake.Intents.default()
 intents.message_content = True
@@ -18,19 +20,20 @@ items = [{'emoji': '⌚', 'name': '**Upwork** Pavlo', 'status': None, 'message_i
          {'emoji': '⌚', 'name': '**Hubstuff** Pavlo', 'status': None, 'message_id': None},
          {'emoji': '⌚', 'name': '**Hubstuff** "SoundBox"', 'status': None, 'message_id': None},
          {'emoji': '⌚', 'name': '**Clockify**', 'status': None, 'message_id': None},
-         {'emoji': '⌚', 'name': '**Hubstuff** Varvara', 'status': None, 'message_id': None},]
-log = []
+         {'emoji': '⌚', 'name': '**Hubstuff** Varvara', 'status': None, 'message_id': None}, ]
 magic_ball_responses = ["Бесспорно", "Предрешено", "Никаких сомнений", "Определённо да", "Можешь быть уверен в этом",
-                        "Мне кажется — «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят — «да»",
-                        "Да", "Пока не ясно, попробуй снова", "Спроси позже", "Лучше не рассказывать",
+                        "Мне кажется — «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят — «да»", "Да",
                         "Сейчас нельзя предсказать", "Сконцентрируйся и спроси опять", "Даже не думай",
-                        "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие", "Весьма сомнительно"]
+                        "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие",
+                        "Весьма сомнительно"]
+magic_ball_chumba = ['', ', Чумба']
 
 
 @bot.slash_command(description="Задать вопрос магическому шару")
 async def magicball(inter, question: str):
     response = random.choice(magic_ball_responses)
-    await inter.response.send_message(f"*{question.capitalize().strip('?')}?*\nМой ответ: **{response}**")
+    ischumba = random.choice(magic_ball_chumba)
+    await inter.response.send_message(f"*{question.capitalize().strip('?')}?*\nМой ответ: **{response}{ischumba}**")
 
 
 @bot.event
@@ -42,36 +45,67 @@ async def on_ready():
     except Exception as e:
         print(f"Error during command synchronization: {e}")
 
+
+@bot.slash_command(description="Получить прогноз погоды")
+async def weather(inter, city: str = 'Dnipro'):
+    api_key = os.getenv("WEATHER_API_KEY")
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+    response = requests.get(url).json()
+
+    if response.get("main"):
+
+        temp = response["main"]["temp"]
+        description = response["weather"][0]["description"]
+        sunset = datetime.datetime.fromtimestamp(response["sys"]["sunset"], tz=datetime.timezone(
+            datetime.timedelta(seconds=response['timezone']))).strftime("%H:%M")
+        sunrise = datetime.datetime.fromtimestamp(response["sys"]["sunrise"], tz=datetime.timezone(
+            datetime.timedelta(seconds=response['timezone']))).strftime("%H:%M")
+        wind = response['wind']["speed"]
+        clouds = response["clouds"]["all"]
+        dt = datetime.datetime.fromtimestamp(response["dt"], tz=datetime.timezone(
+            datetime.timedelta(seconds=response['timezone']))).strftime("%H:%M")
+        country = response["sys"]["country"]
+        city = response["name"]
+        icon_url = f"http://openweathermap.org/img/wn/{response['weather'][0]['icon']}@2x.png"
+
+        embed = disnake.Embed(title=f"**{city} :flag_{country.lower()}:**")
+        embed.set_thumbnail(url=icon_url)
+        embed.add_field(name="🌡️ Температура", value=f"{temp}°C", inline=True)
+        embed.add_field(name="☁️ Облачность", value=f"{clouds}%", inline=True)
+        embed.add_field(name="🌬️ Ветер", value=f"{wind}m/s", inline=True)
+        embed.add_field(name="🕒️ Местное время", value=f"{dt}", inline=True)
+        embed.add_field(name="☀️ Восход солнца", value=f"{sunrise}", inline=True)
+        embed.add_field(name="🌑 Закат", value=f"{sunset}", inline=True)
+
+        await inter.response.send_message(embed=embed)
+    else:
+        await inter.response.send_message(f"Не удалось получить погоду для города {city}")
+
+
+@bot.slash_command(description="Получить случайную шутку")
+async def joke(inter):
+    url = "https://v2.jokeapi.dev/joke/Any"
+    response = requests.get(url).json()
+    if response["type"] == "single":
+        joke = response["joke"]
+    else:
+        joke = f"{response['setup']}\n{response['delivery']}"
+    await inter.response.send_message(joke)
+
+
 @bot.slash_command(name='tracker', description='Вывести список трекеров')
 async def items_command(inter):
     await inter.response.defer()
     for item in items:
-        message = await inter.channel.send(f"`🟢` {item['name']} свободен\n")
+        message = await inter.channel.send(f"`🟢` {item['name']} свободен\n", delete_after=57600)
         item['message_id'] = message.id
         await message.add_reaction(item['emoji'])
     # await inter.send(content="Tracker list ↓\n\n", ephemeral=False)
 
-@bot.slash_command(name='log', description='Показать журнал использования трекеров')
-async def log_command(inter, member: disnake.Member = None):
-    await inter.response.defer()  # Уведомляем Discord, что команда обрабатывается
-    if log:
-        if member:
-            log_entries = [f"{entry['time']} - {entry['item']} {entry['action']} {entry['user'].mention}" for entry in log if entry['user'] == member]
-            if log_entries:
-                message = await inter.edit_original_message(content=f">>> Журнал использования трекеров для {member.mention}:\n" + "\n".join(log_entries))
-            else:
-                message = await inter.edit_original_message(content=f">>> Журнал использования трекеров для {member.mention} пуст.")
-        else:
-            log_entries = [f"{entry['time']} - {entry['item']} {entry['action']} {entry['user'].mention}" for entry in log]
-            message = await inter.edit_original_message(content=">>> Журнал использования трекеров:\n" + "\n".join(log_entries))
-    else:
-        message = await inter.edit_original_message(content=">>> Журнал использования трекеров пуст.")
 
-    await delete_message_after_delay(inter.channel, message, delay=300)
-
-async def delete_message_after_delay(channel, message, delay):
-    await asyncio.sleep(delay)
-    await message.delete()
+# async def delete_message_after_delay(channel, message, delay):
+#     await asyncio.sleep(delay)
+#     await message.delete()
 
 async def process_reaction(payload, add):
     guild = bot.get_guild(payload.guild_id)
@@ -89,42 +123,32 @@ async def process_reaction(payload, add):
         if payload.message_id == item.get('message_id') and str(payload.emoji) == item['emoji']:
             if add:
                 if item['status'] is None:
-                    # Занимаем пункт
+                    # Занимаем
                     item['status'] = user
                     await message.edit(content=f"`🔴` {item['name']} занят {user.mention}\n")
-                    await channel.send(f'{user.mention} сейчас на трекере {item["name"]}', delete_after=60)
-                    # Добавляем запись в журнал
-                    log.append({
-                        'time': datetime.datetime.now().strftime("%H:%M:%S"),
-                        'action': 'занял',
-                        'item': item['name'],
-                        'user': user
-                    })
+                    await channel.send(f'{user.mention} сейчас на трекере {item["name"]}', delete_after=300)
 
                 else:
-                    # Пункт уже занят другим пользователем
-                    await channel.send(f'{user.mention}, этот трекер уже занят {item["status"].mention}.', delete_after=5)
+                    # занят другим пользователем
+                    await channel.send(f'{user.mention}, этот трекер уже занят {item["status"].mention}.',
+                                       delete_after=5)
                     await message.remove_reaction(payload.emoji, user)
             else:
                 if item['status'] == user:
                     # Освобождаем
                     item['status'] = None
                     await message.edit(content=f"`🟢` {item['name']} свободен\n")
-                    await channel.send(f'{user.mention} вышел с трекера {item["name"]}', delete_after=60)
-                    # Добавляем запись в журнал
-                    log.append({
-                        'time': datetime.datetime.now().strftime("%H:%M:%S"),
-                        'action': 'освободил',
-                        'item': item['name'],
-                        'user': user
-                    })
+                    await channel.send(f'{user.mention} вышел с трекера {item["name"]}', delete_after=300)
+
 
 @bot.event
 async def on_raw_reaction_add(payload):
     await process_reaction(payload, True)
 
+
 @bot.event
 async def on_raw_reaction_remove(payload):
     await process_reaction(payload, False)
 
-bot.run('MTI0NzU0MTY2NjU2MzQ4OTg2NA.GsTV9S.H6HAPkA03QiyDlhh3AH2yODmAL7-s6QzyAzmh4')
+
+bot.run(os.getenv("TOKEN"))
