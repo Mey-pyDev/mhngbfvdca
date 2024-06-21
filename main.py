@@ -5,6 +5,7 @@ import asyncio
 import random
 import requests
 import os
+from googletrans import Translator
 
 intents = disnake.Intents.default()
 intents.message_content = True
@@ -17,15 +18,18 @@ command_sync_flags.sync_commands_debug = True
 bot = commands.Bot(command_prefix='-', command_sync_flags=command_sync_flags, intents=intents)
 
 items = [{'emoji': '⌚', 'name': '**Upwork** Pavlo', 'status': None, 'message_id': None},
+         {'emoji': '⌚', 'name': '**Upwork** Artem', 'status': None, 'message_id': None},
          {'emoji': '⌚', 'name': '**Hubstuff** Pavlo', 'status': None, 'message_id': None},
          {'emoji': '⌚', 'name': '**Hubstuff** "SoundBox"', 'status': None, 'message_id': None},
          {'emoji': '⌚', 'name': '**Clockify**', 'status': None, 'message_id': None},
-         {'emoji': '⌚', 'name': '**Hubstuff** Varvara', 'status': None, 'message_id': None}, ]
+         {'emoji': '⌚', 'name': '**Hubstuff** Varvara', 'status': None, 'message_id': None}]
+
 magic_ball_responses = ["Бесспорно", "Предрешено", "Никаких сомнений", "Определённо да", "Можешь быть уверен в этом",
                         "Мне кажется — «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят — «да»", "Да",
                         "Сейчас нельзя предсказать", "Сконцентрируйся и спроси опять", "Даже не думай",
                         "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие",
                         "Весьма сомнительно"]
+
 magic_ball_chumba = ['', ', Чумба']
 
 
@@ -126,7 +130,7 @@ async def process_reaction(payload, add):
                     # Занимаем
                     item['status'] = user
                     await message.edit(content=f"`🔴` {item['name']} занят {user.mention}\n")
-                    await channel.send(f'{user.mention} сейчас на трекере {item["name"]}', delete_after=300)
+                    await channel.send(f'{user.mention} сейчас на трекере {item["name"]}', delete_after=900)
 
                 else:
                     # занят другим пользователем
@@ -138,7 +142,52 @@ async def process_reaction(payload, add):
                     # Освобождаем
                     item['status'] = None
                     await message.edit(content=f"`🟢` {item['name']} свободен\n")
-                    await channel.send(f'{user.mention} вышел с трекера {item["name"]}', delete_after=300)
+                    await channel.send(f'{user.mention} вышел с трекера {item["name"]}', delete_after=900)
+
+translator = Translator()
+
+@bot.message_command(name="Text 🠒 English")
+async def translate_message(inter, message: disnake.Message):
+    try:
+        translated = translator.translate(message.content, dest='en')
+        await inter.response.send_message(f"{translated.text}", ephemeral=True)
+    except Exception as e:
+        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
+
+@bot.message_command(name="Text 🠒 Ru")
+async def translate_message(inter, message: disnake.Message):
+    try:
+        translated = translator.translate(message.content, dest='ru')
+        await inter.response.send_message(f"{translated.text}", ephemeral=True)
+    except Exception as e:
+        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
+
+@bot.message_command(name="📄 Translate to English")
+async def translate_message(inter, message: disnake.Message):
+    try:
+        translated = translator.translate(message.content, dest='en')
+        await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
+        await inter.response.send_message(f"{translated.text}")
+    except Exception as e:
+        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
+
+@bot.message_command(name="📄 Translate to Ukrainian")
+async def translate_message(inter, message: disnake.Message):
+    try:
+        translated = translator.translate(message.content, dest='uk')
+        await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
+        await inter.response.send_message(f"{translated.text}")
+    except Exception as e:
+        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
+
+@bot.message_command(name="📄 Translate to Ru")
+async def translate_message(inter, message: disnake.Message):
+    try:
+        translated = translator.translate(message.content, dest='en')
+        await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
+        await inter.response.send_message(f"{translated.text}")
+    except Exception as e:
+        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
 
 
 @bot.event
