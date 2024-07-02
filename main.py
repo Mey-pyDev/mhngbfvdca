@@ -8,6 +8,7 @@ import os
 from googletrans import Translator
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+import pytz
 
 intents = disnake.Intents.default()
 intents.message_content = True
@@ -51,7 +52,8 @@ async def on_ready():
     except Exception as e:
         print(f"Error during command synchronization: {e}")
     scheduler = AsyncIOScheduler()
-    trigger = CronTrigger(day_of_week='mon-fri', hour=22, minute=34)  # Установите время отправки (9:00 утра)
+    timezone = pytz.timezone('Europe/Kiev')
+    trigger = CronTrigger(day_of_week='mon-fri', hour=23, minute=1, timezone=timezone)  # Установите время отправки (9:00 утра)
     scheduler.add_job(daily_tracker, trigger)
     scheduler.start()
 
@@ -94,7 +96,7 @@ async def weather(inter, city: str = 'Dnipro'):
 
 @bot.slash_command(description="Отримати випадковий жарт")
 async def joke(inter, language: str = None):
-    if language.lower() in ("ua", "рідна", "українська", "ukr", 'укр', 'uk', 'ukrainian', 'ukraine'):
+    if language and language.lower() in ("ua", "рідна", "українська", "ukr", 'укр', 'uk', 'ukrainian', 'ukraine'):
         url = "https://v2.jokeapi.dev/joke/Any?lang=uk"
     else:
         url = "https://v2.jokeapi.dev/joke/Any"
@@ -155,7 +157,7 @@ async def process_reaction(payload, add):
 
 translator = Translator()
 
-@bot.message_command(name="Text 🠒 English:flag_gb:")
+@bot.message_command(name="Text 🠒 Eng")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='en')
@@ -163,18 +165,18 @@ async def translate_message(inter, message: disnake.Message):
     except Exception as e:
         await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
-@bot.message_command(name="Text 🠒 Ru💩")
+@bot.message_command(name="Text 🠒 UA")
 async def translate_message(inter, message: disnake.Message):
     try:
-        translated = translator.translate(message.content, dest='ru')
+        translated = translator.translate(message.content, dest='uk')
         await inter.response.send_message(f"{translated.text}", ephemeral=True)
     except Exception as e:
         await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
-@bot.message_command(name="Text 🠒 UA:flag_ua:")
+@bot.message_command(name="Text 🠒 ru💩")
 async def translate_message(inter, message: disnake.Message):
     try:
-        translated = translator.translate(message.content, dest='uk')
+        translated = translator.translate(message.content, dest='ru')
         await inter.response.send_message(f"{translated.text}", ephemeral=True)
     except Exception as e:
         await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
