@@ -56,6 +56,7 @@ async def on_ready():
     trigger = CronTrigger(day_of_week='mon-fri', hour=23, minute=1, timezone=timezone)  # Установите время отправки (9:00 утра)
     scheduler.add_job(daily_tracker, trigger)
     scheduler.start()
+    print("Планировщик запущен...")
 
 
 @bot.slash_command(description="Отримати прогноз погоди")
@@ -112,7 +113,7 @@ async def joke(inter, language: str = None):
 async def items_command(inter):
     await inter.response.defer()
     for item in items:
-        message = await inter.channel.send(f"`🟢` {item['name']} вільний\n", delete_after=72_000)
+        message = await inter.channel.send(f"`🟢` {item['name']} зараз вільний\n", delete_after=72_000)
         item['message_id'] = message.id
         await message.add_reaction(item['emoji'])
     await inter.send(content="╼╼╼╼", ephemeral=False)
