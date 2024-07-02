@@ -6,6 +6,8 @@ import random
 import requests
 import os
 from googletrans import Translator
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 intents = disnake.Intents.default()
 intents.message_content = True
@@ -48,6 +50,10 @@ async def on_ready():
         print("Slash commands have been synchronized.")
     except Exception as e:
         print(f"Error during command synchronization: {e}")
+    scheduler = AsyncIOScheduler()
+    trigger = CronTrigger(day_of_week='mon-fri', hour=22, minute=30)  # Установите время отправки (9:00 утра)
+    scheduler.add_job(daily_tracker, trigger)
+    scheduler.start()
 
 
 @bot.slash_command(description="Отримати прогноз погоди")
@@ -78,8 +84,8 @@ async def weather(inter, city: str = 'Dnipro'):
         embed.add_field(name="☁️ Хмарність", value=f"{clouds}%", inline=True)
         embed.add_field(name="🌬️ Вітер", value=f"{wind}m/s", inline=True)
         embed.add_field(name="🕒️ Місцевий час", value=f"{dt}", inline=True)
-        embed.add_field(name="☀️ Схід", value=f"{sunrise}", inline=True)
-        embed.add_field(name="🌑 Захід", value=f"{sunset}", inline=True)
+        embed.add_field(name="☀️ Схід сонця", value=f"{sunrise}", inline=True)
+        embed.add_field(name="🌑 Захід сонця", value=f"{sunset}", inline=True)
 
         await inter.response.send_message(embed=embed)
     else:
@@ -104,10 +110,10 @@ async def joke(inter, language: str = None):
 async def items_command(inter):
     await inter.response.defer()
     for item in items:
-        message = await inter.channel.send(f"`🟢` {item['name']} вільний\n", delete_after=57600)
+        message = await inter.channel.send(f"`🟢` {item['name']} вільний\n", delete_after=72_000)
         item['message_id'] = message.id
         await message.add_reaction(item['emoji'])
-    await inter.send(content="-", ephemeral=False)
+    await inter.send(content="╼╼╼╼", ephemeral=False)
 
 
 # async def delete_message_after_delay(channel, message, delay):
@@ -149,7 +155,7 @@ async def process_reaction(payload, add):
 
 translator = Translator()
 
-@bot.message_command(name="Text 🠒 English🇬🇧")
+@bot.message_command(name="Text 🠒 English 🇬🇧")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='en')
@@ -165,7 +171,7 @@ async def translate_message(inter, message: disnake.Message):
     except Exception as e:
         await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
-@bot.message_command(name="Text 🠒 UA🇺🇦")
+@bot.message_command(name="Text 🠒 UA 🇺🇦")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='uk')
@@ -200,6 +206,15 @@ async def on_raw_reaction_add(payload):
 @bot.event
 async def on_raw_reaction_remove(payload):
     await process_reaction(payload, False)
+
+
+async def daily_tracker():
+    channel = bot.get_channel('1014562370317725764')  # замените YOUR_CHANNEL_ID на ID вашего канала
+    if channel:
+        for item in items:
+            message = await channel.send(f"`🟢` {item['name']} вільний\n", delete_after=72_000)
+            item['message_id'] = message.id
+            await message.add_reaction(item['emoji'])
 
 
 bot.run(os.getenv("TOKEN"))
