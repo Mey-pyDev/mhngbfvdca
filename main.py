@@ -53,7 +53,7 @@ async def on_ready():
         print(f"Error during command synchronization: {e}")
     scheduler = AsyncIOScheduler()
     timezone = pytz.timezone('Europe/Kiev')
-    trigger = CronTrigger(day_of_week='mon-fri', hour=23, minute=26, timezone=timezone)
+    trigger = CronTrigger(day_of_week='mon-fri', hour=7, minute=00, timezone=timezone)
     scheduler.add_job(daily_tracker, trigger)
     scheduler.start()
     print("Планировщик запущен...")
@@ -209,10 +209,10 @@ async def on_raw_reaction_remove(payload):
 
 
 async def daily_tracker():
-    channel = bot.get_channel('1014562370317725764')  # замените YOUR_CHANNEL_ID на ID вашего канала 1218888187087421453
+    channel = bot.get_channel(1218888187087421453)  #ID
     if channel:
         for item in items:
-            message = await channel.send(f"`🟢` {item['name']} вільний\n", delete_after=72_000)
+            message = await channel.send(f"`🟢` {item['name']} зараз вільний\n", delete_after=72_000)
             item['message_id'] = message.id
             await message.add_reaction(item['emoji'])
 
