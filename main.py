@@ -51,7 +51,7 @@ async def on_ready():
     except Exception as e:
         print(f"Error during command synchronization: {e}")
     scheduler = AsyncIOScheduler()
-    trigger = CronTrigger(day_of_week='mon-fri', hour=22, minute=30)  # Установите время отправки (9:00 утра)
+    trigger = CronTrigger(day_of_week='mon-fri', hour=22, minute=34)  # Установите время отправки (9:00 утра)
     scheduler.add_job(daily_tracker, trigger)
     scheduler.start()
 
