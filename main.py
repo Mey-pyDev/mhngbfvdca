@@ -24,20 +24,20 @@ items = [{'emoji': '⌚', 'name': '**Upwork** Pavlo', 'status': None, 'message_i
          {'emoji': '⌚', 'name': '**Clockify**', 'status': None, 'message_id': None},
          {'emoji': '⌚', 'name': '**Hubstuff** Varvara', 'status': None, 'message_id': None}]
 
-magic_ball_responses = ["Бесспорно", "Предрешено", "Никаких сомнений", "Определённо да", "Можешь быть уверен в этом",
-                        "Мне кажется — «да»", "Вероятнее всего", "Хорошие перспективы", "Знаки говорят — «да»", "Да",
-                        "Сейчас нельзя предсказать", "Сконцентрируйся и спроси опять", "Даже не думай",
-                        "Мой ответ — «нет»", "По моим данным — «нет»", "Перспективы не очень хорошие",
-                        "Весьма сомнительно"]
+magic_ball_responses = ["Безсумнівно", "Вирішено", "Ніяких сумнівів", "Однозначно так", "Можеш бути впевнений у цьому",
+                        "Мені здається — «так»", "Скоріш за все", "Хороші перспективи", "Знаки говорять — «так»", "Так",
+                        "Зараз не можна передбачити", "Сконцентруйся і спитай знову", "Навіть не думай",
+                        "Моя відповідь — «ні»", "За моїми даними — «ні»", "Перспективи не дуже хороші",
+                        "Дуже сумнівно", "Можливо так, можливо ні", "Можливо у паралельному всесвіті", "👍", "👎"]
 
 magic_ball_chumba = ['', ', Чумба']
 
 
-@bot.slash_command(description="Задать вопрос магическому шару")
+@bot.slash_command(description="Запитай магічну кулю (питання має відповідати на так/ні)")
 async def magicball(inter, question: str):
     response = random.choice(magic_ball_responses)
     ischumba = random.choice(magic_ball_chumba)
-    await inter.response.send_message(f"*{question.capitalize().strip('?')}?*\nМой ответ: **{response}{ischumba}**")
+    await inter.response.send_message(f"*{question.strip('?')}?*\nМоя відповідь: **{response}{ischumba}**")
 
 
 @bot.event
@@ -50,7 +50,7 @@ async def on_ready():
         print(f"Error during command synchronization: {e}")
 
 
-@bot.slash_command(description="Получить прогноз погоды")
+@bot.slash_command(description="Отримати прогноз погоди")
 async def weather(inter, city: str = 'Dnipro'):
     api_key = os.getenv("WEATHER_API_KEY")
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
@@ -75,20 +75,23 @@ async def weather(inter, city: str = 'Dnipro'):
         embed = disnake.Embed(title=f"**{city} :flag_{country.lower()}:**")
         embed.set_thumbnail(url=icon_url)
         embed.add_field(name="🌡️ Температура", value=f"{temp}°C", inline=True)
-        embed.add_field(name="☁️ Облачность", value=f"{clouds}%", inline=True)
-        embed.add_field(name="🌬️ Ветер", value=f"{wind}m/s", inline=True)
-        embed.add_field(name="🕒️ Местное время", value=f"{dt}", inline=True)
-        embed.add_field(name="☀️ Восход солнца", value=f"{sunrise}", inline=True)
-        embed.add_field(name="🌑 Закат", value=f"{sunset}", inline=True)
+        embed.add_field(name="☁️ Хмарність", value=f"{clouds}%", inline=True)
+        embed.add_field(name="🌬️ Вітер", value=f"{wind}m/s", inline=True)
+        embed.add_field(name="🕒️ Місцевий час", value=f"{dt}", inline=True)
+        embed.add_field(name="☀️ Схід", value=f"{sunrise}", inline=True)
+        embed.add_field(name="🌑 Захід", value=f"{sunset}", inline=True)
 
         await inter.response.send_message(embed=embed)
     else:
-        await inter.response.send_message(f"Не удалось получить погоду для города {city}")
+        await inter.response.send_message(f"Не вдалося отримати погоду для міста {city}")
 
 
-@bot.slash_command(description="Получить случайную шутку")
-async def joke(inter):
-    url = "https://v2.jokeapi.dev/joke/Any"
+@bot.slash_command(description="Отримати випадковий жарт")
+async def joke(inter, language: str = None):
+    if language.lower() in ("ua", "рідна", "українська", "ukr", 'укр', 'uk', 'ukrainian', 'ukraine'):
+        url = "https://v2.jokeapi.dev/joke/Any?lang=uk"
+    else:
+        url = "https://v2.jokeapi.dev/joke/Any"
     response = requests.get(url).json()
     if response["type"] == "single":
         joke = response["joke"]
@@ -97,14 +100,14 @@ async def joke(inter):
     await inter.response.send_message(joke)
 
 
-@bot.slash_command(name='tracker', description='Вывести список трекеров')
+@bot.slash_command(name='tracker', description='Вивести список трекерів')
 async def items_command(inter):
     await inter.response.defer()
     for item in items:
-        message = await inter.channel.send(f"`🟢` {item['name']} свободен\n", delete_after=57600)
+        message = await inter.channel.send(f"`🟢` {item['name']} вільний\n", delete_after=57600)
         item['message_id'] = message.id
         await message.add_reaction(item['emoji'])
-    # await inter.send(content="Tracker list ↓\n\n", ephemeral=False)
+    await inter.send(content="-", ephemeral=False)
 
 
 # async def delete_message_after_delay(channel, message, delay):
@@ -129,65 +132,64 @@ async def process_reaction(payload, add):
                 if item['status'] is None:
                     # Занимаем
                     item['status'] = user
-                    await message.edit(content=f"`🔴` {item['name']} занят {user.mention}\n")
-                    await channel.send(f'{user.mention} сейчас на трекере {item["name"]}', delete_after=900)
+                    await message.edit(content=f"`🔴` {item['name']} зайняв(ла) {user.mention}\n")
+                    await channel.send(f'{user.mention} зараз на трекері {item["name"]}', delete_after=1800)
 
-                else:
-                    # занят другим пользователем
-                    await channel.send(f'{user.mention}, этот трекер уже занят {item["status"].mention}.',
-                                       delete_after=5)
-                    await message.remove_reaction(payload.emoji, user)
+                # else:
+                #     # занят другим пользователем
+                #     await channel.send(f'{user.mention}, этот трекер уже занят {item["status"].mention}.',
+                #                        delete_after=5)
+                #     await message.remove_reaction(payload.emoji, user)
             else:
                 if item['status'] == user:
                     # Освобождаем
                     item['status'] = None
-                    await message.edit(content=f"`🟢` {item['name']} свободен\n")
-                    await channel.send(f'{user.mention} вышел с трекера {item["name"]}', delete_after=900)
+                    await message.edit(content=f"`🟢` {item['name']} зараз вільний\n")
+                    await channel.send(f'{user.mention} звільнив(ла) трекер {item["name"]}', delete_after=1800)
 
 translator = Translator()
 
-@bot.message_command(name="Text 🠒 English")
+@bot.message_command(name="Text 🠒 English🇬🇧")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='en')
         await inter.response.send_message(f"{translated.text}", ephemeral=True)
     except Exception as e:
-        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
+        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
-@bot.message_command(name="Text 🠒 Ru")
+@bot.message_command(name="Text 🠒 Ru💩")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='ru')
         await inter.response.send_message(f"{translated.text}", ephemeral=True)
     except Exception as e:
-        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
+        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
-@bot.message_command(name="📄 Translate to English")
-async def translate_message(inter, message: disnake.Message):
-    try:
-        translated = translator.translate(message.content, dest='en')
-        await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
-        await inter.response.send_message(f"{translated.text}")
-    except Exception as e:
-        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
-
-@bot.message_command(name="📄 Translate to Ukrainian")
+@bot.message_command(name="Text 🠒 UA🇺🇦")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='uk')
-        await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
-        await inter.response.send_message(f"{translated.text}")
+        await inter.response.send_message(f"{translated.text}", ephemeral=True)
     except Exception as e:
-        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
+        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
-@bot.message_command(name="📄 Translate to Ru")
+@bot.message_command(name="📄 Translate & Publish to English")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='en')
         await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
         await inter.response.send_message(f"{translated.text}")
     except Exception as e:
-        await inter.response.send_message(f"Ошибка при переводе: {str(e)}")
+        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
+
+@bot.message_command(name="📄 Translate & Publish to Ru")
+async def translate_message(inter, message: disnake.Message):
+    try:
+        translated = translator.translate(message.content, dest='ru')
+        await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
+        await inter.response.send_message(f"{translated.text}")
+    except Exception as e:
+        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
 
 @bot.event
