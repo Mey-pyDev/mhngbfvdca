@@ -155,7 +155,7 @@ async def process_reaction(payload, add):
 
 translator = Translator()
 
-@bot.message_command(name="Text 🠒 English 🇬🇧")
+@bot.message_command(name="Text 🠒 English:flag_gb:")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='en')
@@ -171,7 +171,7 @@ async def translate_message(inter, message: disnake.Message):
     except Exception as e:
         await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
-@bot.message_command(name="Text 🠒 UA 🇺🇦")
+@bot.message_command(name="Text 🠒 UA:flag_ua:")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='uk')
@@ -209,7 +209,7 @@ async def on_raw_reaction_remove(payload):
 
 
 async def daily_tracker():
-    channel = bot.get_channel('1014562370317725764')  # замените YOUR_CHANNEL_ID на ID вашего канала
+    channel = bot.get_channel('1014562370317725764')  # замените YOUR_CHANNEL_ID на ID вашего канала 1218888187087421453
     if channel:
         for item in items:
             message = await channel.send(f"`🟢` {item['name']} вільний\n", delete_after=72_000)
