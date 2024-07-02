@@ -53,7 +53,7 @@ async def on_ready():
         print(f"Error during command synchronization: {e}")
     scheduler = AsyncIOScheduler()
     timezone = pytz.timezone('Europe/Kiev')
-    trigger = CronTrigger(day_of_week='mon-fri', hour=23, minute=1, timezone=timezone)  # Установите время отправки (9:00 утра)
+    trigger = CronTrigger(day_of_week='mon-fri', hour=23, minute=26, timezone=timezone)
     scheduler.add_job(daily_tracker, trigger)
     scheduler.start()
     print("Планировщик запущен...")
@@ -96,11 +96,8 @@ async def weather(inter, city: str = 'Dnipro'):
 
 
 @bot.slash_command(description="Отримати випадковий жарт")
-async def joke(inter, language: str = None):
-    if language and language.lower() in ("ua", "рідна", "українська", "ukr", 'укр', 'uk', 'ukrainian', 'ukraine'):
-        url = "https://v2.jokeapi.dev/joke/Any?lang=uk"
-    else:
-        url = "https://v2.jokeapi.dev/joke/Any"
+async def joke(inter):
+    url = "https://v2.jokeapi.dev/joke/Any"
     response = requests.get(url).json()
     if response["type"] == "single":
         joke = response["joke"]
