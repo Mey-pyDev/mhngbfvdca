@@ -162,16 +162,25 @@ async def translate_message(inter, message: disnake.Message):
 
         # Создаем кнопку "Опубликовать"
         publish_button = disnake.ui.Button(label="Цей переклад бачите лише Ви, натисніть тут, щоб опублікувати переклад в чат", style=disnake.ButtonStyle.blurple)
+        delete_button = disnake.ui.Button(label="Видалити переклад", style=disnake.ButtonStyle.red)
 
         async def publish_callback(button_interaction):
             await inter.channel.send(f"**Text 🠒 Ru:**\n\n{translated.text}")  # Отправляем переведенное сообщение как обычный текст
             await button_interaction.response.edit_message(content="Повідомлення опубліковано", view=None)
             await button_interaction.delete_original_message()
 
+        async def delete_callback(button_interaction):
+            await button_interaction.response.edit_message(content="Переклад видалено", view=None)
+            await button_interaction.delete_original_message()  # Удаление первоначального сообщения
+
+
         publish_button.callback = publish_callback
+        delete_button.callback = delete_callback
 
         view = disnake.ui.View()
+        view.add_item(delete_button)
         view.add_item(publish_button)
+
 
         await inter.response.send_message(f"{translated.text}\n.", view=view, ephemeral=True)
     except Exception as e:
@@ -184,15 +193,23 @@ async def translate_message(inter, message: disnake.Message):
 
         # Создаем кнопку "Опубликовать"
         publish_button = disnake.ui.Button(label="Цей переклад бачите лише Ви, натисніть тут, щоб опублікувати переклад в чат", style=disnake.ButtonStyle.blurple)
+        delete_button = disnake.ui.Button(label="Видалити переклад", style=disnake.ButtonStyle.red)
 
         async def publish_callback(button_interaction):
             await inter.channel.send(f"**Text 🠒 Ua:**\n\n{translated.text}")  # Отправляем переведенное сообщение как обычный текст
             await button_interaction.response.edit_message(content="Повідомлення опубліковано", view=None)
             await button_interaction.delete_original_message()
 
+        async def delete_callback(button_interaction):
+            await button_interaction.response.edit_message(content="Переклад видалено", view=None)
+            await button_interaction.delete_original_message()  # Удаление первоначального сообщения
+
+
+        delete_button.callback = delete_callback
         publish_button.callback = publish_callback
 
         view = disnake.ui.View()
+        view.add_item(delete_button)
         view.add_item(publish_button)
 
         await inter.response.send_message(f"{translated.text}\n.", view=view, ephemeral=True)
@@ -206,15 +223,22 @@ async def translate_message(inter, message: disnake.Message):
 
         # Создаем кнопку "Опубликовать"
         publish_button = disnake.ui.Button(label="Цей переклад бачите лише Ви, натисніть тут, щоб опублікувати переклад в чат", style=disnake.ButtonStyle.blurple)
+        delete_button = disnake.ui.Button(label="Видалити переклад", style=disnake.ButtonStyle.red)
 
         async def publish_callback(button_interaction):
             await inter.channel.send(f"**Text 🠒 Eng:**\n\n{translated.text}")  # Отправляем переведенное сообщение как обычный текст
             await button_interaction.response.edit_message(content="Повідомлення опубліковано", view=None)
             await button_interaction.delete_original_message()
 
+        async def delete_callback(button_interaction):
+            await button_interaction.response.edit_message(content="Переклад видалено", view=None)
+            await button_interaction.delete_original_message()  # Удаление первоначального сообщения
+
         publish_button.callback = publish_callback
+        delete_button.callback = delete_callback
 
         view = disnake.ui.View()
+        view.add_item(delete_button)
         view.add_item(publish_button)
 
         await inter.response.send_message(f"{translated.text}\n.", view=view, ephemeral=True)
