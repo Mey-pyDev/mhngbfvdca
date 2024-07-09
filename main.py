@@ -113,7 +113,7 @@ async def items_command(inter):
         message = await inter.channel.send(f"`🟢` {item['name']} зараз вільний\n", delete_after=72_000)
         item['message_id'] = message.id
         await message.add_reaction(item['emoji'])
-    await inter.send(content="╼╼╼╼", ephemeral=False)
+    await inter.send(content="Ручний виклик - Оновлюю список трекерів", ephemeral=False)
 
 
 # async def delete_message_after_delay(channel, message, delay):
@@ -155,47 +155,71 @@ async def process_reaction(payload, add):
 
 translator = Translator()
 
+@bot.message_command(name="Text 🠒 Ru")
+async def translate_message(inter, message: disnake.Message):
+    try:
+        translated = translator.translate(message.content, dest='ru')
+
+        # Создаем кнопку "Опубликовать"
+        publish_button = disnake.ui.Button(label="Цей переклад бачите лише Ви, натисніть тут, щоб опублікувати переклад в чат", style=disnake.ButtonStyle.blurple)
+
+        async def publish_callback(button_interaction):
+            await inter.channel.send(f"**Text 🠒 Ru:**\n\n{translated.text}")  # Отправляем переведенное сообщение как обычный текст
+            await button_interaction.response.edit_message(content="Повідомлення опубліковано", view=None)
+            await button_interaction.delete_original_message()
+
+        publish_button.callback = publish_callback
+
+        view = disnake.ui.View()
+        view.add_item(publish_button)
+
+        await inter.response.send_message(f"{translated.text}\n.", view=view, ephemeral=True)
+    except Exception as e:
+        await inter.response.send_message(f"Помилка при перекладі: {str(e)}\n\nБудь ласка, надішліть це повідомлення <@236912374685106176>", ephemeral=True)
+
+@bot.message_command(name="Text 🠒 Ua")
+async def translate_message(inter, message: disnake.Message):
+    try:
+        translated = translator.translate(message.content, dest='uk')
+
+        # Создаем кнопку "Опубликовать"
+        publish_button = disnake.ui.Button(label="Цей переклад бачите лише Ви, натисніть тут, щоб опублікувати переклад в чат", style=disnake.ButtonStyle.blurple)
+
+        async def publish_callback(button_interaction):
+            await inter.channel.send(f"**Text 🠒 Ua:**\n\n{translated.text}")  # Отправляем переведенное сообщение как обычный текст
+            await button_interaction.response.edit_message(content="Повідомлення опубліковано", view=None)
+            await button_interaction.delete_original_message()
+
+        publish_button.callback = publish_callback
+
+        view = disnake.ui.View()
+        view.add_item(publish_button)
+
+        await inter.response.send_message(f"{translated.text}\n.", view=view, ephemeral=True)
+    except Exception as e:
+        await inter.response.send_message(f"Помилка при перекладі: {str(e)}\n\nБудь ласка, надішліть це повідомлення <@236912374685106176>", ephemeral=True)
+
 @bot.message_command(name="Text 🠒 Eng")
 async def translate_message(inter, message: disnake.Message):
     try:
         translated = translator.translate(message.content, dest='en')
-        await inter.response.send_message(f"{translated.text}", ephemeral=True)
-    except Exception as e:
-        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
 
-@bot.message_command(name="Text 🠒 UA")
-async def translate_message(inter, message: disnake.Message):
-    try:
-        translated = translator.translate(message.content, dest='uk')
-        await inter.response.send_message(f"{translated.text}", ephemeral=True)
-    except Exception as e:
-        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
+        # Создаем кнопку "Опубликовать"
+        publish_button = disnake.ui.Button(label="Цей переклад бачите лише Ви, натисніть тут, щоб опублікувати переклад в чат", style=disnake.ButtonStyle.blurple)
 
-@bot.message_command(name="Text 🠒 ru💩")
-async def translate_message(inter, message: disnake.Message):
-    try:
-        translated = translator.translate(message.content, dest='ru')
-        await inter.response.send_message(f"{translated.text}", ephemeral=True)
-    except Exception as e:
-        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
+        async def publish_callback(button_interaction):
+            await inter.channel.send(f"**Text 🠒 Eng:**\n\n{translated.text}")  # Отправляем переведенное сообщение как обычный текст
+            await button_interaction.response.edit_message(content="Повідомлення опубліковано", view=None)
+            await button_interaction.delete_original_message()
 
-@bot.message_command(name="📄 Translate & Publish to English")
-async def translate_message(inter, message: disnake.Message):
-    try:
-        translated = translator.translate(message.content, dest='en')
-        await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
-        await inter.response.send_message(f"{translated.text}")
-    except Exception as e:
-        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
+        publish_button.callback = publish_callback
 
-@bot.message_command(name="📄 Translate & Publish to Ru")
-async def translate_message(inter, message: disnake.Message):
-    try:
-        translated = translator.translate(message.content, dest='ru')
-        await message.add_reaction("📄")  # Добавляем реакцию к оригинальному сообщению
-        await inter.response.send_message(f"{translated.text}")
+        view = disnake.ui.View()
+        view.add_item(publish_button)
+
+        await inter.response.send_message(f"{translated.text}\n.", view=view, ephemeral=True)
     except Exception as e:
-        await inter.response.send_message(f"Помилка при перекладі: {str(e)}")
+        await inter.response.send_message(f"Помилка при перекладі: {str(e)}\n\nБудь ласка, надішліть це повідомлення <@236912374685106176>", ephemeral=True)
 
 
 @bot.event
