@@ -134,24 +134,29 @@ async def process_reaction(payload, add):
 
     for item in items:
         if payload.message_id == item.get('message_id') and str(payload.emoji) == item['emoji']:
+            current_time = datetime.datetime.now().strftime("%H:%M")
             if add:
                 if item['status'] is None:
                     # Занимаем
                     item['status'] = user
-                    await message.edit(content=f"`🔴` {item['name']} зайняв(ла) {user.mention}\n")
-                    await channel.send(f'{user.mention} зараз на трекері {item["name"]}', delete_after=1800)
+                    await message.edit(content=f"`🔴` {item['name']} зайняв(ла) {user.mention} o {current_time}\n")
+                    await channel.send(f'{current_time} - {user.mention} зараз на трекері {item["name"]}', delete_after=28800)
 
-                # else:
-                #     # занят другим пользователем
-                #     await channel.send(f'{user.mention}, этот трекер уже занят {item["status"].mention}.',
-                #                        delete_after=5)
-                #     await message.remove_reaction(payload.emoji, user)
             else:
-                if item['status'] == user:
-                    # Освобождаем
+                if item['status'] == user and '**Upwork**' in item['name']:
+                    upwork_time = current_time
                     item['status'] = None
-                    await message.edit(content=f"`🟢` {item['name']} зараз вільний\n")
-                    await channel.send(f'{user.mention} звільнив(ла) трекер {item["name"]}', delete_after=1800)
+                    await message.edit(content=f"`🟡` {item['name']} вільний з {current_time}, але зачекай ще ~10 хвилин")
+                    await channel.send(f'{current_time} - {user.mention} звільнив(ла) трекер {item["name"]}', delete_after=28800)
+
+                    await asyncio.sleep(600)
+                    if item['status'] == None:
+                        await message.edit(content=f"`🟢` {item['name']} вільний з {upwork_time}\n")
+
+                elif item['status'] == user:
+                    item['status'] = None
+                    await message.edit(content=f"`🟢` {item['name']} вільний з {current_time}\n")
+                    await channel.send(f'{current_time} - {user.mention} звільнив(ла) трекер {item["name"]}', delete_after=28800)
 
 translator = Translator()
 
@@ -257,7 +262,7 @@ async def on_raw_reaction_remove(payload):
 
 
 async def daily_tracker():
-    channel = bot.get_channel(1218888187087421453)  #ID
+    channel = bot.get_channel(1218888187087421453)  #ID трекерный-движ
     if channel:
         for item in items:
             message = await channel.send(f"`🟢` {item['name']} зараз вільний\n", delete_after=72_000)
