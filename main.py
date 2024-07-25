@@ -132,9 +132,11 @@ async def process_reaction(payload, add):
     if message.author != bot.user:
         return
 
+    timezone = pytz.timezone('Europe/Kiev')  # Установите вашу временную зону
+    current_time = datetime.datetime.now(timezone).strftime("%H:%M")
+
     for item in items:
         if payload.message_id == item.get('message_id') and str(payload.emoji) == item['emoji']:
-            current_time = datetime.datetime.now().strftime("%H:%M")
             if add:
                 if item['status'] is None:
                     # Занимаем
