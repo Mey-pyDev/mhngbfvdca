@@ -232,7 +232,7 @@ async def process_reaction(payload, add):
                 if tracker['status'] is None:
                     tracker['status'] = user
                     await message.edit(content=f"`🔴` {tracker['name']} зайняв(ла) {user.mention} о {current_time}\n")
-                    await thread.send(f'{current_time} - {user.mention} зараз на трекері {tracker["name"]}')
+                    await thread.send(f'{current_time} - {user.display_name} зараз на трекері {tracker["name"]}')
 
                     # Создаем кнопки для выбора времени
                     one_hour_button = disnake.ui.Button(label="1", style=disnake.ButtonStyle.gray)
@@ -316,7 +316,7 @@ async def process_reaction(payload, add):
                         upwork_time = current_time
                         tracker['status'] = None
                         await message.edit(content=f"`🟡` {tracker['name']} вільний з {current_time}, але зачекай ще ~10 хвилин")
-                        await thread.send(f'{current_time} - {user.mention} звільнив(ла) трекер {tracker["name"]}')
+                        await thread.send(f'{current_time} - {user.display_name} звільнив(ла) трекер {tracker["name"]}')
 
                         await asyncio.sleep(600)
                         if tracker['status'] is None:
@@ -324,7 +324,7 @@ async def process_reaction(payload, add):
                     else:
                         tracker['status'] = None
                         await message.edit(content=f"`🟢` {tracker['name']} вільний з {current_time}\n")
-                        await thread.send(f'{current_time} - {user.mention} звільнив(ла) трекер {tracker["name"]}')
+                        await thread.send(f'{current_time} - {user.display_name} звільнив(ла) трекер {tracker["name"]}')
 
 
 async def update_tracker_time(interaction, name, msgid, trackername, hours):
